@@ -1,16 +1,17 @@
-
 import tkinter as tk
 import random
 
 score = 0
 count = 0
 attempt = 1
+answer = 0
+digits = 1
 
-BG = "#E8E1F2"
-PURPLE = "#7654A8"
-LIGHT_PURPLE = "#D8C9EB"
+BG = "#FFE5E5"
+RED = "#C62828"
+DARK_RED = "#8E0000"
 WHITE = "#FFFFFF"
-TEXT = "#383044"
+TEXT = "#222222"
 
 def start():
     global score, count, digits
@@ -27,10 +28,11 @@ def start():
 def question():
     global a, b, answer, attempt, count
 
-    if count == 10:
-        problem.config(text="Quiz Completed!")
+    if count >= 10:
+        problem.config(text="QUIZ COMPLETED!")
         result.config(text=f"Final Score: {score}/100")
         submit_btn.config(state="disabled")
+        entry.config(state="disabled")
         return
 
     count += 1
@@ -43,169 +45,179 @@ def question():
     answer = a + b if op == "+" else a - b
 
     problem.config(text=f"{a} {op} {b} = ?")
+    entry.config(state="normal")
     entry.delete(0, tk.END)
+    entry.focus_set()
 
     progress.config(text=f"Question {count}/10")
-    result.config(text="Enter your answer")
+    result.config(text="Type your answer below")
     submit_btn.config(state="normal")
 
-def check():
+def check(event=None):
     global score, attempt
 
-    if not entry.get().lstrip("-").isdigit():
-        result.config(text="Enter a valid number")
-        return
+    if submit_btn["state"] == "disabled":
+        return "break"
 
-    if int(entry.get()) == answer:
+    user_answer = entry.get().strip()
+
+    if user_answer == "" or not user_answer.lstrip("-").isdigit():
+        result.config(text="Please enter a number!")
+        entry.focus_set()
+        return "break"
+
+    if int(user_answer) == answer:
         score += 10 if attempt == 1 else 5
         score_label.config(text=f"Score: {score}")
-        result.config(text="Correct!")
-        root.after(700, question)
+        result.config(text="Correct! Well done!")
+        submit_btn.config(state="disabled")
+        entry.config(state="disabled")
+        root.after(1000, question)
 
     elif attempt == 1:
         attempt = 2
         result.config(text="Wrong! Try again.")
+        entry.delete(0, tk.END)
+        entry.focus_set()
 
     else:
         result.config(text=f"Correct answer: {answer}")
-        root.after(1000, question)
+        submit_btn.config(state="disabled")
+        entry.config(state="disabled")
+        root.after(1500, question)
+
+    return "break"
 
 
 root = tk.Tk()
 root.title("Math Quiz")
-root.geometry("520x650")
+root.geometry("700x850")
 root.configure(bg=BG)
 root.resizable(False, False)
 
 tk.Label(
     root,
     text="MATH QUIZ",
-    font=("Arial", 27, "bold"),
+    font=("Arial", 36, "bold"),
     bg=BG,
-    fg=PURPLE
-).pack(pady=(25, 5))
+    fg=RED
+).pack(pady=20)
 
-tk.Label(
-    root,
-    text="Test your addition and subtraction skills",
-    font=("Arial", 11),
-    bg=BG,
-    fg=TEXT
-).pack(pady=(0, 15))
 
-# Difficulty box
-difficulty_box = tk.Frame(root, bg=WHITE, padx=25, pady=15)
-difficulty_box.pack(padx=40, fill="x", pady=10)
+difficulty_box = tk.Frame(root, bg=WHITE, padx=20, pady=10)
+difficulty_box.pack(padx=50, fill="x", pady=10)
 
 tk.Label(
     difficulty_box,
     text="CHOOSE DIFFICULTY",
-    font=("Arial", 13, "bold"),
+    font=("Arial", 16, "bold"),
     bg=WHITE,
-    fg=PURPLE
+    fg=RED
 ).pack(pady=5)
 
 choice = tk.StringVar(value="Easy")
 
-for level, color in [
-    ("Easy", "#D8EEDC"),
-    ("Medium", "#D8E8F7"),
-    ("Hard", "#F4DCE8")
-]:
+for level in ["Easy", "Medium", "Hard"]:
     tk.Radiobutton(
         difficulty_box,
         text=level,
         variable=choice,
         value=level,
-        font=("Arial", 11, "bold"),
-        bg=color,
+        font=("Arial", 13),
+        bg=WHITE,
         fg=TEXT,
-        selectcolor=color,
-        activebackground=color,
-        indicatoron=0,
-        width=20,
-        pady=7
-    ).pack(pady=4)
+        selectcolor="#FFCCCC"
+    ).pack()
 
 tk.Button(
     difficulty_box,
     text="START QUIZ",
     command=start,
-    bg=PURPLE,
+    bg=RED,
     fg=WHITE,
-    font=("Arial", 11, "bold"),
+    font=("Arial", 14, "bold"),
     relief="flat",
     width=20,
-    pady=8,
-    cursor="hand2"
-).pack(pady=12)
+    pady=8
+).pack(pady=8)
 
-# Score and progress
-info_box = tk.Frame(root, bg=LIGHT_PURPLE, padx=15, pady=12)
-info_box.pack(padx=40, fill="x", pady=10)
+info_box = tk.Frame(root, bg="#FFCCCC", padx=20, pady=12)
+info_box.pack(padx=50, fill="x", pady=10)
 
 score_label = tk.Label(
     info_box,
     text="Score: 0",
-    font=("Arial", 13, "bold"),
-    bg=LIGHT_PURPLE,
-    fg=PURPLE
+    font=("Arial", 15, "bold"),
+    bg="#FFCCCC",
+    fg=DARK_RED
 )
 score_label.pack(side="left")
 
 progress = tk.Label(
     info_box,
     text="Question 0/10",
-    font=("Arial", 11, "bold"),
-    bg=LIGHT_PURPLE,
+    font=("Arial", 14, "bold"),
+    bg="#FFCCCC",
     fg=TEXT
 )
 progress.pack(side="right")
 
-# Question box
-question_box = tk.Frame(root, bg=WHITE, padx=20, pady=25)
-question_box.pack(padx=40, fill="x", pady=10)
+question_box = tk.Frame(root, bg=WHITE, padx=20, pady=20)
+question_box.pack(padx=50, fill="both", expand=True, pady=10)
 
 problem = tk.Label(
     question_box,
     text="Ready to play?",
-    font=("Arial", 25, "bold"),
+    font=("Arial", 32, "bold"),
     bg=WHITE,
     fg=TEXT
 )
-problem.pack(pady=15)
+problem.pack(pady=20)
+
+tk.Label(
+    question_box,
+    text="YOUR ANSWER:",
+    font=("Arial", 16, "bold"),
+    bg=WHITE,
+    fg=RED
+).pack(pady=5)
 
 entry = tk.Entry(
     question_box,
-    font=("Arial", 18),
+    font=("Arial", 25),
     justify="center",
-    width=18,
+    width=15,
+    bg=WHITE,
+    fg="black",
+    insertbackground="black",
     relief="solid",
-    bd=1
+    bd=3
 )
-entry.pack(ipady=7, pady=10)
+entry.pack(pady=15, ipady=12)
 
 submit_btn = tk.Button(
     question_box,
     text="SUBMIT ANSWER",
     command=check,
-    bg=PURPLE,
+    bg=RED,
     fg=WHITE,
-    font=("Arial", 11, "bold"),
-    relief="flat",
+    activebackground=DARK_RED,
+    activeforeground=WHITE,
+    font=("Arial", 16, "bold"),
+    relief="raised",
     width=20,
-    pady=9,
+    pady=12,
     cursor="hand2"
 )
-submit_btn.pack(pady=10)
+submit_btn.pack(pady=15)
 
 result = tk.Label(
     question_box,
     text="Choose a difficulty to begin",
-    font=("Arial", 11),
+    font=("Arial", 15, "bold"),
     bg=WHITE,
-    fg=PURPLE
+    fg=RED
 )
-result.pack(pady=5)
+result.pack(pady=10)
 
 root.mainloop()
